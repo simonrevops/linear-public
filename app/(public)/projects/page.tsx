@@ -12,7 +12,6 @@ export default function ProjectsPage() {
   const [issuesLoading, setIssuesLoading] = useState(false)
   const [statuses, setStatuses] = useState<string[]>([])
   const [milestones, setMilestones] = useState<string[]>([])
-  const [collapsedMilestones, setCollapsedMilestones] = useState<Set<string>>(new Set())
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -45,12 +44,10 @@ export default function ProjectsPage() {
     setIssuesLoading(true)
     setError(null)
     try {
-      console.log('Loading issues for project IDs:', projectIds)
       const response = await fetch(`/api/linear/issues?projectIds=${projectIds.join(',')}&cache=false`)
       
       if (!response.ok) {
         const errorData = await response.json()
-        console.error('Error response:', errorData)
         setError(errorData.error || 'Failed to fetch issues')
         setIssues([])
         return
@@ -58,10 +55,8 @@ export default function ProjectsPage() {
       
       const data = await response.json()
       const loadedIssues = data.issues || []
-      console.log('Loaded issues:', loadedIssues.length, loadedIssues)
       
       if (loadedIssues.length === 0) {
-        console.warn('No issues returned for project IDs:', projectIds)
         setError('No issues found in this project. Make sure the project has issues in Linear.')
       } else {
         setError(null)
@@ -77,7 +72,7 @@ export default function ProjectsPage() {
       } else {
         // Fallback: fetch states separately if not included in response
         try {
-          const teamIds = Array.from(new Set(loadedIssues.map((issue: LinearIssue) => issue.team.id)))
+          const teamIds: string[] = Array.from(new Set(loadedIssues.map((issue: LinearIssue) => issue.team.id))) as string[]
           const statesResponse = await fetch(`/api/linear/states?teamIds=${teamIds.join(',')}&cache=false`)
           const statesData = await statesResponse.json()
           workflowStates = statesData.states || []
@@ -104,27 +99,23 @@ export default function ProjectsPage() {
         setStatuses(uniqueStatuses)
       }
 
-      // Extract milestones - for now using labels or project areas
-      // In Linear, milestones are typically project milestones or can be derived from labels
+      // Extract milestones from labels
+      // In Linear, milestones can be represented as labels or we use "All Issues" as default
       const milestoneSet = new Set<string>()
       loadedIssues.forEach((issue: LinearIssue) => {
-        // Try to get milestone from labels first
         if (issue.labels?.nodes && issue.labels.nodes.length > 0) {
           issue.labels.nodes.forEach(label => {
             // Filter out common labels that aren't milestones
-            if (!['bug', 'feature', 'enhancement'].includes(label.name.toLowerCase())) {
+            if (!['bug', 'feature', 'enhancement', 'public'].includes(label.name.toLowerCase())) {
               milestoneSet.add(label.name)
             }
           })
         }
-        // If no milestone label, use a default
-        if (milestoneSet.size === 0 && issue.project) {
-          milestoneSet.add('All Issues')
-        }
       })
       
+      // Always include "All Issues" as a milestone row
       const uniqueMilestones = Array.from(milestoneSet).sort()
-      setMilestones(uniqueMilestones.length > 0 ? uniqueMilestones : ['All Issues'])
+      setMilestones(uniqueMilestones.length > 0 ? ['All Issues', ...uniqueMilestones] : ['All Issues'])
     } catch (error) {
       console.error('Error loading issues:', error)
     } finally {
@@ -138,16 +129,6 @@ export default function ProjectsPage() {
     } else {
       setSelectedProject(project)
     }
-  }
-
-  const toggleMilestone = (milestone: string) => {
-    const newCollapsed = new Set(collapsedMilestones)
-    if (newCollapsed.has(milestone)) {
-      newCollapsed.delete(milestone)
-    } else {
-      newCollapsed.add(milestone)
-    }
-    setCollapsedMilestones(newCollapsed)
   }
 
   const getIssuesForCell = (status: string, milestone: string) => {
@@ -165,10 +146,6 @@ export default function ProjectsPage() {
     })
   }
 
-  const getStatusCount = (status: string) => {
-    return issues.filter(issue => issue.state.name === status).length
-  }
-
   if (loading) {
     return (
       <div className="h-screen bg-[#0d0d0d] flex items-center justify-center">
@@ -182,35 +159,13 @@ export default function ProjectsPage() {
 
   return (
     <div className="h-screen bg-[#0d0d0d] flex flex-col">
-      {/* Header - Linear style */}
-      <div className="bg-[#151515] border-b border-[#1f1f1f] px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          {selectedProject ? (
-            <>
-              <h1 className="text-lg font-semibold text-[#ededed]">{selectedProject.name}</h1>
-              <div className="flex items-center gap-1 text-sm text-[#9ca3af]">
-                <button className="px-3 py-1.5 hover:bg-[#1f1f1f] rounded">Overview</button>
-                <button className="px-3 py-1.5 hover:bg-[#1f1f1f] rounded">Updates</button>
-                <button className="px-3 py-1.5 bg-[#1f1f1f] text-[#ededed] rounded">Issues</button>
-              </div>
-            </>
-          ) : (
-            <h1 className="text-lg font-semibold text-[#ededed]">Projects</h1>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <button className="p-2 hover:bg-[#1f1f1f] rounded text-[#9ca3af]">🔗</button>
-          <button className="p-2 hover:bg-[#1f1f1f] rounded text-[#9ca3af]">📊</button>
-          <button className="px-3 py-1.5 text-sm text-[#9ca3af] hover:bg-[#1f1f1f] rounded">Display</button>
-        </div>
-      </div>
-
-      {/* Filter Bar */}
-      <div className="bg-[#151515] border-b border-[#1f1f1f] px-6 py-2">
-        <div className="flex items-center gap-2 text-sm text-[#9ca3af]">
-          <span>🔍</span>
-          <span>Filter</span>
-        </div>
+      {/* Header */}
+      <div className="bg-[#151515] border-b border-[#1f1f1f] px-6 py-3">
+        {selectedProject ? (
+          <h1 className="text-lg font-semibold text-[#ededed]">{selectedProject.name}</h1>
+        ) : (
+          <h1 className="text-lg font-semibold text-[#ededed]">Projects</h1>
+        )}
       </div>
 
       <div className="flex-1 overflow-hidden flex">
@@ -274,75 +229,61 @@ export default function ProjectsPage() {
               <div className="text-center">
                 <p className="text-[#9ca3af] mb-2">No issues found</p>
                 <p className="text-sm text-[#6b7280]">This project doesn't have any issues yet</p>
-                <p className="text-xs text-[#6b7280] mt-2">Check the browser console for debugging info</p>
               </div>
             </div>
           ) : (
             <div className="p-6">
-              {/* Status Columns */}
-              <div className="flex gap-4 overflow-x-auto pb-4">
-                {statuses.map((status) => {
-                  const count = getStatusCount(status)
-                  return (
-                    <div key={status} className="flex-shrink-0 w-80">
-                      {/* Column Header */}
-                      <div className="bg-[#151515] border border-[#1f1f1f] rounded-t-lg p-3 mb-2">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-sm font-medium text-[#ededed]">{status}</h3>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-[#6b7280]">{count}</span>
-                            <button className="text-[#9ca3af] hover:text-[#ededed]">⋯</button>
-                            <button className="text-[#9ca3af] hover:text-[#ededed]">+</button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Milestone Sections */}
-                      <div className="space-y-4">
-                        {milestones.map((milestone) => {
-                          const isCollapsed = collapsedMilestones.has(milestone)
-                          const milestoneIssues = getIssuesForCell(status, milestone)
-                          
-                          if (milestoneIssues.length === 0 && milestone !== 'All Issues') {
-                            return null
-                          }
-
+              {/* Board Grid: Milestones as rows, Statuses as columns */}
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  {/* Header Row - Status Columns */}
+                  <thead>
+                    <tr>
+                      <th className="sticky left-0 z-10 bg-[#151515] border border-[#1f1f1f] px-4 py-3 text-left text-sm font-medium text-[#ededed] min-w-[200px]">
+                        Milestone
+                      </th>
+                      {statuses.map((status) => (
+                        <th
+                          key={status}
+                          className="bg-[#151515] border border-[#1f1f1f] px-4 py-3 text-center text-sm font-medium text-[#ededed] min-w-[280px]"
+                        >
+                          {status}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {milestones.map((milestone) => (
+                      <tr key={milestone}>
+                        {/* Milestone Row Header */}
+                        <td className="sticky left-0 z-10 bg-[#151515] border border-[#1f1f1f] px-4 py-3 text-sm font-medium text-[#ededed]">
+                          {milestone}
+                        </td>
+                        {/* Status Columns */}
+                        {statuses.map((status) => {
+                          const cellIssues = getIssuesForCell(status, milestone)
                           return (
-                            <div key={`${status}-${milestone}`} className="bg-[#151515] border border-[#1f1f1f] rounded-lg">
-                              {/* Milestone Header */}
-                              <button
-                                onClick={() => toggleMilestone(milestone)}
-                                className="w-full flex items-center justify-between p-3 hover:bg-[#1f1f1f] rounded-t-lg transition-colors"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[#9ca3af]">
-                                    {isCollapsed ? '▶' : '▼'}
-                                  </span>
-                                  <span className="text-sm font-medium text-[#ededed]">{milestone}</span>
-                                  <span className="text-xs text-[#6b7280]">({milestoneIssues.length})</span>
-                                </div>
-                              </button>
-
-                              {/* Issues in this milestone */}
-                              {!isCollapsed && (
-                                <div className="p-2 space-y-2 min-h-[100px]">
-                                  {milestoneIssues.map((issue) => (
-                                    <IssueCard key={issue.id} issue={issue} />
-                                  ))}
-                                  {milestoneIssues.length === 0 && (
-                                    <div className="text-center py-8 text-xs text-[#6b7280]">
-                                      No issues
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
+                            <td
+                              key={`${milestone}-${status}`}
+                              className="bg-[#151515] border border-[#1f1f1f] px-2 py-2 align-top"
+                            >
+                              <div className="space-y-2 min-h-[100px]">
+                                {cellIssues.map((issue) => (
+                                  <IssueCard key={issue.id} issue={issue} />
+                                ))}
+                                {cellIssues.length === 0 && (
+                                  <div className="text-center py-4 text-xs text-[#6b7280]">
+                                    —
+                                  </div>
+                                )}
+                              </div>
+                            </td>
                           )
                         })}
-                      </div>
-                    </div>
-                  )
-                })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
