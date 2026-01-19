@@ -24,13 +24,13 @@ export async function lookupContactByEmail(email: string): Promise<HubSpotContac
           filters: [
             {
               propertyName: 'email',
-              operator: 'EQ',
+              operator: 'EQ' as any, // Type assertion to fix HubSpot SDK type issue
               value: email
             }
           ]
         }
       ],
-      properties: ['email', 'firstname', 'lastname', 'hs_team', 'team']
+      properties: ['email', 'firstname', 'lastname', 'hs_team', 'team', 'department', 'business_unit', 'hs_team_id', 'team_id']
     })
 
     if (!searchResponse.results || searchResponse.results.length === 0) {
@@ -100,4 +100,3 @@ export async function getContactById(contactId: string): Promise<HubSpotContact 
     return null
   }
 }
-
