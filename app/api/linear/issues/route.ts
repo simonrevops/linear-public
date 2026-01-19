@@ -24,7 +24,9 @@ export async function GET(request: NextRequest) {
 
       if (cached) {
         // Try to get workflow states from cache or fetch fresh
-        const teamIds = Array.from(new Set(cached.data.map((issue: any) => issue.team?.id).filter(Boolean)))
+        const teamIds: string[] = Array.from(
+          new Set(cached.data.map((issue: any) => issue.team?.id).filter(Boolean))
+        ) as string[]
         let workflowStates: any[] = []
         if (teamIds.length > 0) {
           try {
@@ -59,7 +61,7 @@ export async function GET(request: NextRequest) {
     const issues = await fetchIssuesFromProjects(projectIds)
 
     // Get unique team IDs from issues to fetch workflow states
-    const teamIds = Array.from(new Set(issues.map(issue => issue.team.id)))
+    const teamIds: string[] = Array.from(new Set(issues.map(issue => issue.team.id))) as string[]
     const workflowStates = await fetchWorkflowStatesForTeams(teamIds)
 
     // Cache the issues (expires in 2 minutes)
