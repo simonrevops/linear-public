@@ -87,9 +87,9 @@ export default function ProjectsPage() {
       }
 
       // Extract unique statuses from issues
-      const uniqueStatuses = Array.from(
+      const uniqueStatuses: string[] = Array.from(
         new Set(loadedIssues.map((issue: LinearIssue) => issue.state.name))
-      )
+      ) as string[]
 
       // Order statuses by their position in Linear's workflow
       if (workflowStates.length > 0) {
@@ -97,7 +97,7 @@ export default function ProjectsPage() {
         const orderedStatuses = workflowStates
           .filter(state => uniqueStatuses.includes(state.name))
           .map(state => state.name)
-        const unorderedStatuses = uniqueStatuses.filter(s => !statusMap.has(s)).sort()
+        const unorderedStatuses = uniqueStatuses.filter((s: string) => !statusMap.has(s)).sort()
         setStatuses([...orderedStatuses, ...unorderedStatuses])
       } else {
         // Fallback: use statuses from issues in the order they appear
