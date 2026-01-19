@@ -48,8 +48,8 @@ export async function lookupContactByEmail(email: string): Promise<HubSpotContac
     return {
       id: contact.id,
       email: properties.email || email,
-      firstName: properties.firstname,
-      lastName: properties.lastname,
+      firstName: properties.firstname || undefined,
+      lastName: properties.lastname || undefined,
       fullName: properties.firstname && properties.lastname
         ? `${properties.firstname} ${properties.lastname}`
         : properties.firstname || properties.lastname || undefined,
@@ -87,8 +87,8 @@ export async function getContactById(contactId: string): Promise<HubSpotContact 
     return {
       id: contact.id,
       email: properties.email || '',
-      firstName: properties.firstname,
-      lastName: properties.lastname,
+      firstName: properties.firstname || undefined,
+      lastName: properties.lastname || undefined,
       fullName: properties.firstname && properties.lastname
         ? `${properties.firstname} ${properties.lastname}`
         : properties.firstname || properties.lastname || undefined,
