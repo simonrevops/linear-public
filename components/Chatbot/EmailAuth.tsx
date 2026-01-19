@@ -14,12 +14,15 @@ interface EmailAuthProps {
 
 export default function EmailAuth({ onAuthenticated }: EmailAuthProps) {
   const [email, setEmail] = useState('')
-  const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault()
+    }
+    if (!email.trim() || loading) return
+
     setLoading(true)
     setError(null)
 
@@ -29,7 +32,7 @@ export default function EmailAuth({ onAuthenticated }: EmailAuthProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, name: name || undefined }),
+        body: JSON.stringify({ email }),
       })
 
       if (!response.ok) {
@@ -46,8 +49,15 @@ export default function EmailAuth({ onAuthenticated }: EmailAuthProps) {
     }
   }
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && email.trim()) {
+      e.preventDefault()
+      handleSubmit()
+    }
+  }
+
   return (
-    <div>
+    <div className="bg-[#151515] border border-[#1f1f1f] rounded-lg p-6">
       <h2 className="text-xl font-semibold text-[#ededed] mb-2">Identify Yourself</h2>
       <p className="text-[#9ca3af] mb-6 text-sm">
         Please enter your email to report an issue. We'll use this to understand the scope and impact.
@@ -63,23 +73,11 @@ export default function EmailAuth({ onAuthenticated }: EmailAuthProps) {
             id="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onKeyPress={handleKeyPress}
             required
             className="w-full px-3 py-2 bg-[#0d0d0d] border border-[#1f1f1f] rounded-md text-[#ededed] focus:outline-none focus:ring-2 focus:ring-[#5e6ad2] focus:border-[#5e6ad2]"
             placeholder="your.email@company.com"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-[#9ca3af] mb-1">
-            Name (optional)
-          </label>
-          <input
-            type="text"
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full px-3 py-2 bg-[#0d0d0d] border border-[#1f1f1f] rounded-md text-[#ededed] focus:outline-none focus:ring-2 focus:ring-[#5e6ad2] focus:border-[#5e6ad2]"
-            placeholder="Your name"
+            autoFocus
           />
         </div>
 
@@ -91,10 +89,10 @@ export default function EmailAuth({ onAuthenticated }: EmailAuthProps) {
 
         <button
           type="submit"
-          disabled={loading || !email}
+          disabled={loading || !email.trim()}
           className="w-full bg-[#5e6ad2] text-white py-2 px-4 rounded-md hover:bg-[#4c56c4] focus:outline-none focus:ring-2 focus:ring-[#5e6ad2] focus:ring-offset-2 focus:ring-offset-[#0d0d0d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {loading ? 'Identifying...' : 'Continue'}
+          {loading ? 'Identifying...' : 'Continue (Press ENTER)'}
         </button>
       </form>
     </div>

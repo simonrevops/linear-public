@@ -54,56 +54,28 @@ export default function CreateIssuePage() {
     }
   }
 
-  if (!user) {
-    return (
-      <div className="p-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-semibold text-[#ededed] mb-2">Create Issue</h1>
-          <p className="text-[#9ca3af] mb-6">Report issues, request features, or get help from the RevOps team.</p>
-          <div className="bg-[#151515] border border-[#1f1f1f] rounded-lg p-6">
+  return (
+    <div className="h-screen bg-[#0d0d0d] flex flex-col">
+      {!user ? (
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="max-w-md w-full">
             <EmailAuth onAuthenticated={handleAuthenticated} />
           </div>
         </div>
-      </div>
-    )
-  }
-
-  if (loading || !sessionId) {
-    return (
-      <div className="p-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center py-12">
+      ) : loading || !sessionId ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#5e6ad2]"></div>
             <p className="mt-4 text-[#9ca3af]">Initializing chat...</p>
           </div>
         </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-[#ededed] mb-2">Create Issue</h1>
-          <p className="text-[#9ca3af]">
-            Chat with our RevOps assistant to report issues, request features, or get help.
-          </p>
-          {user.hubspot_team && (
-            <p className="text-sm text-[#6b7280] mt-2">
-              Team: {user.hubspot_team}
-            </p>
-          )}
-        </div>
-        <div className="bg-[#151515] border border-[#1f1f1f] rounded-lg p-6">
-          <ChatInterface
-            sessionId={sessionId}
-            userEmail={user.email}
-            initialMessages={[]}
-          />
-        </div>
-      </div>
+      ) : (
+        <ChatInterface
+          sessionId={sessionId}
+          userEmail={user.email}
+          initialMessages={[]}
+        />
+      )}
     </div>
   )
 }
-

@@ -15,6 +15,7 @@ export default function ChatInterface({ sessionId, userEmail, initialMessages = 
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState<'CONVERSING' | 'AWAIT_CONFIRMATION' | 'CREATE'>('CONVERSING')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -22,10 +23,12 @@ export default function ChatInterface({ sessionId, userEmail, initialMessages = 
 
   useEffect(() => {
     scrollToBottom()
-  }, [messages])
+  }, [messages, loading])
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSend = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault()
+    }
     if (!input.trim() || loading) return
 
     const userMessage = input.trim()
@@ -76,11 +79,22 @@ export default function ChatInterface({ sessionId, userEmail, initialMessages = 
     }
   }
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
+    }
+  }
+
   return (
-    <div className="flex flex-col h-full max-h-[600px]">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#0d0d0d] rounded-t-lg">
+    <div className="h-screen flex flex-col bg-[#0d0d0d]">
+      {/* Messages Area - fills from top, scrolls when needed */}
+      <div 
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto p-6 space-y-4"
+      >
         {messages.length === 0 && (
-          <div className="text-center text-[#9ca3af] py-8">
+          <div className="text-center text-[#9ca3af] py-12">
             <p className="text-lg font-medium mb-2 text-[#ededed]">How can I help you today?</p>
             <p className="text-sm">Describe the issue or request you'd like to report.</p>
           </div>
@@ -90,7 +104,7 @@ export default function ChatInterface({ sessionId, userEmail, initialMessages = 
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-[#151515] rounded-lg px-4 py-2">
+            <div className="bg-[#151515] border border-[#1f1f1f] rounded-lg px-4 py-2">
               <div className="flex space-x-1">
                 <div className="w-2 h-2 bg-[#5e6ad2] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                 <div className="w-2 h-2 bg-[#5e6ad2] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
@@ -101,15 +115,19 @@ export default function ChatInterface({ sessionId, userEmail, initialMessages = 
         )}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={handleSend} className="border-t border-[#1f1f1f] p-4 bg-[#151515] rounded-b-lg">
-        <div className="flex space-x-2">
+
+      {/* Input Area - fixed at bottom */}
+      <div className="border-t border-[#1f1f1f] bg-[#151515] p-4">
+        <form onSubmit={handleSend} className="flex space-x-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
             placeholder={status === 'AWAIT_CONFIRMATION' ? 'Type "yes" to create or "cancel" to discard...' : 'Type your message...'}
             className="flex-1 px-4 py-2 bg-[#0d0d0d] border border-[#1f1f1f] rounded-md text-[#ededed] focus:outline-none focus:ring-2 focus:ring-[#5e6ad2] focus:border-[#5e6ad2]"
             disabled={loading}
+            autoFocus
           />
           <button
             type="submit"
@@ -118,8 +136,8 @@ export default function ChatInterface({ sessionId, userEmail, initialMessages = 
           >
             Send
           </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   )
 }

@@ -36,6 +36,30 @@ export default function IssueCard({ issue, onClick }: IssueCardProps) {
     }
   }
 
+  // Get assignee initials for tag
+  const getAssigneeTag = () => {
+    if (issue.assignee) {
+      const nameParts = issue.assignee.name.split(' ')
+      if (nameParts.length >= 2) {
+        return (nameParts[0][0] + nameParts[1][0]).toUpperCase()
+      }
+      return issue.assignee.name.substring(0, 2).toUpperCase()
+    }
+    return null
+  }
+
+  // Get team tag (using team name)
+  const getTeamTag = () => {
+    if (issue.team) {
+      const teamParts = issue.team.name.split(' ')
+      if (teamParts.length >= 2) {
+        return (teamParts[0][0] + teamParts[1][0]).toUpperCase()
+      }
+      return issue.team.name.substring(0, 2).toUpperCase()
+    }
+    return null
+  }
+
   if (showDetails) {
     return (
       <div className="bg-[#151515] border border-[#1f1f1f] rounded-lg p-4 mb-2">
@@ -71,50 +95,73 @@ export default function IssueCard({ issue, onClick }: IssueCardProps) {
     )
   }
 
+  const assigneeTag = getAssigneeTag()
+  const teamTag = getTeamTag()
+
   return (
     <div
-      className="bg-[#151515] border border-[#1f1f1f] rounded-lg p-3 hover:border-[#2f2f2f] transition-colors cursor-pointer mb-2"
+      className="bg-[#151515] border border-[#1f1f1f] rounded-lg p-2.5 hover:border-[#2f2f2f] transition-colors cursor-pointer mb-2 text-left"
       onClick={handleClick}
     >
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-mono text-[#6b7280]">{issue.identifier}</span>
-          {issue.priority !== undefined && (
-            <span
-              className={`px-1.5 py-0.5 rounded text-xs font-medium ${
-                priorityColors[issue.priority] || priorityColors[0]
-              }`}
-              title={priorityLabels[issue.priority] || 'Unknown Priority'}
-            >
-              {priorityLabels[issue.priority] || 'Unknown'}
-            </span>
-          )}
-        </div>
+      {/* Top row: ID and tag */}
+      <div className="flex items-center gap-2 mb-1.5">
+        <span className="text-xs font-mono text-[#9ca3af] font-medium">{issue.identifier}</span>
+        {(assigneeTag || teamTag) && (
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#5e6ad2]/20 text-[#5e6ad2] border border-[#5e6ad2]/30">
+            {assigneeTag || teamTag}
+          </span>
+        )}
       </div>
-      <h3 className="font-medium text-[#ededed] mb-2 line-clamp-2 text-sm">{issue.title}</h3>
-      <div className="flex items-center justify-between">
+
+      {/* Title */}
+      <h3 className="font-medium text-[#ededed] mb-2 text-sm leading-snug line-clamp-2">{issue.title}</h3>
+
+      {/* Bottom row: Icons and metadata */}
+      <div className="flex items-center gap-2 text-xs text-[#6b7280]">
+        {/* Priority indicator */}
+        {issue.priority !== undefined && issue.priority > 0 && (
+          <span className={`w-1.5 h-1.5 rounded-full ${
+            issue.priority === 1 ? 'bg-[#dc2626]' :
+            issue.priority === 2 ? 'bg-[#ea580c]' :
+            issue.priority === 3 ? 'bg-[#ca8a04]' :
+            'bg-[#2563eb]'
+          }`} />
+        )}
+        
+        {/* Project/Milestone name */}
+        {issue.project && (
+          <span className="flex items-center gap-1">
+            <span>◆</span>
+            <span>{issue.project.name}</span>
+          </span>
+        )}
+        
+        {/* Assignee avatar */}
         {issue.assignee && (
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-[#5e6ad2] flex items-center justify-center text-white text-xs">
+          <div className="ml-auto flex items-center gap-1">
+            <div className="w-4 h-4 rounded-full bg-[#5e6ad2] flex items-center justify-center text-white text-[10px]">
               {issue.assignee.name.charAt(0).toUpperCase()}
             </div>
-            <span className="text-xs text-[#9ca3af]">{issue.assignee.name}</span>
           </div>
         )}
-        {issue.project && (
-          <span className="text-xs text-[#6b7280]">{issue.project.name}</span>
-        )}
       </div>
+
+      {/* Labels */}
       {issue.labels && issue.labels.nodes.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-2">
-          {issue.labels.nodes.map((label) => (
+          {issue.labels.nodes.slice(0, 3).map((label) => (
             <span
               key={label.id}
-              className="px-1.5 py-0.5 bg-[#1f1f1f] text-[#9ca3af] text-xs rounded"
+              className="px-1.5 py-0.5 bg-[#1f1f1f] text-[#9ca3af] text-[10px] rounded"
             >
               {label.name}
             </span>
           ))}
+          {issue.labels.nodes.length > 3 && (
+            <span className="px-1.5 py-0.5 bg-[#1f1f1f] text-[#6b7280] text-[10px] rounded">
+              +{issue.labels.nodes.length - 3}
+            </span>
+          )}
         </div>
       )}
     </div>
