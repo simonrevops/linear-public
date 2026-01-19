@@ -12,22 +12,6 @@ interface IssueCardProps {
 export default function IssueCard({ issue, onClick }: IssueCardProps) {
   const [showDetails, setShowDetails] = useState(false)
 
-  const priorityColors: Record<number, string> = {
-    0: 'bg-[#2f2f2f] text-[#9ca3af]',
-    1: 'bg-[#dc2626] text-white',
-    2: 'bg-[#ea580c] text-white',
-    3: 'bg-[#ca8a04] text-white',
-    4: 'bg-[#2563eb] text-white',
-  }
-
-  const priorityLabels: Record<number, string> = {
-    0: 'No Priority',
-    1: 'Urgent',
-    2: 'High',
-    3: 'Medium',
-    4: 'Low',
-  }
-
   const handleClick = () => {
     if (onClick) {
       onClick()
@@ -36,8 +20,8 @@ export default function IssueCard({ issue, onClick }: IssueCardProps) {
     }
   }
 
-  // Get assignee initials for tag
-  const getAssigneeTag = () => {
+  // Get assignee initials for avatar
+  const getAssigneeInitials = () => {
     if (issue.assignee) {
       const nameParts = issue.assignee.name.split(' ')
       if (nameParts.length >= 2) {
@@ -48,45 +32,37 @@ export default function IssueCard({ issue, onClick }: IssueCardProps) {
     return null
   }
 
-  // Get team tag (using team name)
-  const getTeamTag = () => {
-    if (issue.team) {
-      const teamParts = issue.team.name.split(' ')
-      if (teamParts.length >= 2) {
-        return (teamParts[0][0] + teamParts[1][0]).toUpperCase()
-      }
-      return issue.team.name.substring(0, 2).toUpperCase()
+  // Get milestone/project label from issue labels
+  const getMilestoneLabel = () => {
+    if (issue.labels?.nodes && issue.labels.nodes.length > 0) {
+      // Find first label that's not a common type
+      const commonLabels = ['bug', 'feature', 'enhancement', 'public']
+      const milestoneLabel = issue.labels.nodes.find(
+        label => !commonLabels.includes(label.name.toLowerCase())
+      )
+      return milestoneLabel?.name
     }
     return null
   }
 
   if (showDetails) {
     return (
-      <div className="bg-[#151515] border border-[#1f1f1f] rounded-lg p-4 mb-2">
+      <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-md p-4 mb-1.5">
         <button
           onClick={() => setShowDetails(false)}
-          className="mb-3 text-sm text-[#5e6ad2] hover:text-[#4c56c4]"
+          className="mb-3 text-[13px] text-[#9466ff] hover:text-[#8555e6] transition-colors duration-150"
         >
           ← Back
         </button>
         <div className="mb-4">
-          <h3 className="font-semibold text-[#ededed] mb-2">{issue.title}</h3>
-          <div className="flex items-center gap-3 text-sm text-[#9ca3af] mb-3">
+          <h3 className="font-medium text-[#ebebeb] mb-2 text-[13px]">{issue.title}</h3>
+          <div className="flex items-center gap-3 text-[12px] text-[#8a8a8a] mb-3">
             <span className="font-mono">{issue.identifier}</span>
-            <span className="px-2 py-0.5 rounded text-xs bg-[#1f1f1f]">{issue.state.name}</span>
-            {issue.priority !== undefined && (
-              <span
-                className={`px-2 py-0.5 rounded text-xs font-medium ${
-                  priorityColors[issue.priority] || priorityColors[0]
-                }`}
-              >
-                {priorityLabels[issue.priority] || 'Unknown'}
-              </span>
-            )}
+            <span className="px-2 py-0.5 rounded-full text-[11px] bg-[#262626] text-[#8a8a8a]">{issue.state.name}</span>
           </div>
           {issue.description && (
-            <div className="mt-3 p-3 bg-[#0d0d0d] rounded border border-[#1f1f1f]">
-              <p className="whitespace-pre-wrap text-[#ededed] text-sm">{issue.description}</p>
+            <div className="mt-3 p-3 bg-[#0d0d0d] rounded-md border border-[#2a2a2a]">
+              <p className="whitespace-pre-wrap text-[#ebebeb] text-[13px]">{issue.description}</p>
             </div>
           )}
         </div>
@@ -95,75 +71,42 @@ export default function IssueCard({ issue, onClick }: IssueCardProps) {
     )
   }
 
-  const assigneeTag = getAssigneeTag()
-  const teamTag = getTeamTag()
+  const assigneeInitials = getAssigneeInitials()
+  const milestoneLabel = getMilestoneLabel()
 
   return (
     <div
-      className="bg-[#151515] border border-[#1f1f1f] rounded-lg p-2.5 hover:border-[#2f2f2f] transition-colors cursor-pointer mb-2 text-left"
+      className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-md p-3 hover:border-[#3a3a3a] transition-colors duration-150 cursor-pointer mb-1.5"
+      style={{ marginLeft: '4px', marginRight: '4px' }}
       onClick={handleClick}
     >
-      {/* Top row: ID and tag */}
-      <div className="flex items-center gap-2 mb-1.5">
-        <span className="text-xs font-mono text-[#9ca3af] font-medium">{issue.identifier}</span>
-        {(assigneeTag || teamTag) && (
-          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#5e6ad2]/20 text-[#5e6ad2] border border-[#5e6ad2]/30">
-            {assigneeTag || teamTag}
-          </span>
-        )}
-      </div>
-
-      {/* Title */}
-      <h3 className="font-medium text-[#ededed] mb-2 text-sm leading-snug line-clamp-2">{issue.title}</h3>
-
-      {/* Bottom row: Icons and metadata */}
-      <div className="flex items-center gap-2 text-xs text-[#6b7280]">
-        {/* Priority indicator */}
-        {issue.priority !== undefined && issue.priority > 0 && (
-          <span className={`w-1.5 h-1.5 rounded-full ${
-            issue.priority === 1 ? 'bg-[#dc2626]' :
-            issue.priority === 2 ? 'bg-[#ea580c]' :
-            issue.priority === 3 ? 'bg-[#ca8a04]' :
-            'bg-[#2563eb]'
-          }`} />
-        )}
-        
-        {/* Project/Milestone name */}
-        {issue.project && (
-          <span className="flex items-center gap-1">
-            <span>◆</span>
-            <span>{issue.project.name}</span>
-          </span>
-        )}
-        
-        {/* Assignee avatar */}
-        {issue.assignee && (
-          <div className="ml-auto flex items-center gap-1">
-            <div className="w-4 h-4 rounded-full bg-[#5e6ad2] flex items-center justify-center text-white text-[10px]">
-              {issue.assignee.name.charAt(0).toUpperCase()}
-            </div>
+      {/* Header row: Issue ID (left) + Assignee avatar (right) */}
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-[12px] text-[#5c5c5c] font-normal font-mono">{issue.identifier}</span>
+        {assigneeInitials && (
+          <div className="w-6 h-6 rounded-full bg-[#9466ff] flex items-center justify-center text-white text-[10px] font-medium">
+            {assigneeInitials}
           </div>
         )}
       </div>
 
-      {/* Labels */}
-      {issue.labels && issue.labels.nodes.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-2">
-          {issue.labels.nodes.slice(0, 3).map((label) => (
-            <span
-              key={label.id}
-              className="px-1.5 py-0.5 bg-[#1f1f1f] text-[#9ca3af] text-[10px] rounded"
-            >
-              {label.name}
-            </span>
-          ))}
-          {issue.labels.nodes.length > 3 && (
-            <span className="px-1.5 py-0.5 bg-[#1f1f1f] text-[#6b7280] text-[10px] rounded">
-              +{issue.labels.nodes.length - 3}
-            </span>
-          )}
-        </div>
-      )}
+      {/* Title */}
+      <h3 className="text-[13px] text-[#ebebeb] font-normal line-clamp-2 mb-2 leading-snug">{issue.title}</h3>
+
+      {/* Metadata row */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {/* Milestone label */}
+        {milestoneLabel && (
+          <div className="flex items-center gap-1 px-2 py-0.5 bg-[#262626] rounded-full">
+            <div className="w-3 h-3 flex items-center justify-center text-[#9466ff]">
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="currentColor">
+                <path d="M7 0L8.5 5H14L9.75 8L11.25 13L7 10L2.75 13L4.25 8L0 5H5.5L7 0Z"/>
+              </svg>
+            </div>
+            <span className="text-[11px] text-[#8a8a8a]">{milestoneLabel}</span>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
