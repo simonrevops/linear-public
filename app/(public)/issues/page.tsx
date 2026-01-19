@@ -42,7 +42,7 @@ export default function AllIssuesPage() {
       } else {
         // Fallback: fetch states separately if not included in response
         try {
-          const teamIds = Array.from(new Set(loadedIssues.map((issue: LinearIssue) => issue.team.id)))
+          const teamIds: string[] = Array.from(new Set(loadedIssues.map((issue: LinearIssue) => issue.team.id))) as string[]
           if (teamIds.length > 0) {
             const statesResponse = await fetch(`/api/linear/states?teamIds=${teamIds.join(',')}&cache=false`)
             const statesData = await statesResponse.json()
@@ -85,28 +85,41 @@ export default function AllIssuesPage() {
     return issues.filter(issue => issue.state.name === status).length
   }
 
-  return (
-    <div className="h-screen bg-[#0d0d0d] flex flex-col">
-      {/* Header - Linear style */}
-      <div className="bg-[#151515] border-b border-[#1f1f1f] px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <h1 className="text-lg font-semibold text-[#ededed]">All Issues</h1>
-          <div className="flex items-center gap-1 text-sm text-[#9ca3af]">
-            <button className="px-3 py-1.5 bg-[#1f1f1f] text-[#ededed] rounded">Issues</button>
-          </div>
+  const getStatusIcon = (status: string) => {
+    const statusLower = status.toLowerCase()
+    if (statusLower.includes('backlog')) {
+      return (
+        <div className="w-3.5 h-3.5 rounded-full border border-[#5c5c5c]" />
+      )
+    } else if (statusLower.includes('todo')) {
+      return (
+        <div className="w-3.5 h-3.5 rounded-full border border-[#e5e5e5]" />
+      )
+    } else if (statusLower.includes('progress')) {
+      return (
+        <div className="w-3.5 h-3.5 rounded-full border-2 border-[#f2c94c] border-t-transparent border-r-transparent" />
+      )
+    } else if (statusLower.includes('done')) {
+      return (
+        <div className="w-3.5 h-3.5 rounded-full bg-[#5bb98c] flex items-center justify-center">
+          <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 8 8">
+            <path d="M6.5 1L3 4.5L1.5 3" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="p-2 hover:bg-[#1f1f1f] rounded text-[#9ca3af]">🔗</button>
-          <button className="p-2 hover:bg-[#1f1f1f] rounded text-[#9ca3af]">📊</button>
-          <button className="px-3 py-1.5 text-sm text-[#9ca3af] hover:bg-[#1f1f1f] rounded">Display</button>
-        </div>
-      </div>
+      )
+    }
+    return <div className="w-3.5 h-3.5 rounded-full border border-[#5c5c5c]" />
+  }
 
-      {/* Filter Bar */}
-      <div className="bg-[#151515] border-b border-[#1f1f1f] px-6 py-2">
-        <div className="flex items-center gap-2 text-sm text-[#9ca3af]">
-          <span>🔍</span>
-          <span>Filter</span>
+  return (
+    <div className="h-screen bg-[#0d0d0d] flex flex-col" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif' }}>
+      {/* Header - 44px */}
+      <div className="h-11 border-b border-[#2a2a2a] flex items-center justify-between px-6 bg-[#0d0d0d]">
+        <div className="flex items-center gap-6">
+          <h1 className="text-[14px] font-medium text-[#ebebeb]">All Issues</h1>
+          <div className="flex items-center gap-1">
+            <button className="px-2 py-1 text-[13px] text-[#ebebeb] border-b border-[#ebebeb]">Issues</button>
+          </div>
         </div>
       </div>
 
@@ -115,56 +128,50 @@ export default function AllIssuesPage() {
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#5e6ad2]"></div>
-              <p className="mt-4 text-[#9ca3af]">Loading issues...</p>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#9466ff]"></div>
+              <p className="mt-4 text-[#8a8a8a]">Loading issues...</p>
             </div>
           </div>
         ) : issues.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <p className="text-[#9ca3af] mb-2">No issues found.</p>
-              <p className="text-sm text-[#6b7280]">Make sure you have public projects with issues in Linear.</p>
+              <p className="text-[#8a8a8a] mb-2">No issues found.</p>
+              <p className="text-[13px] text-[#5c5c5c]">Make sure you have public projects with issues in Linear.</p>
             </div>
           </div>
         ) : (
-          <div className="bg-[#151515] border border-[#1f1f1f] rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <div className="flex gap-4 p-4 min-w-max">
-                {statuses.map((status) => {
-                  const statusIssues = getIssuesByStatus(status)
-                  const count = getStatusCount(status)
-                  return (
-                    <div
-                      key={status}
-                      className="flex-shrink-0 w-80"
-                    >
-                      {/* Column Header */}
-                      <div className="bg-[#151515] border border-[#1f1f1f] rounded-t-lg p-3 mb-2">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-sm font-medium text-[#ededed]">{status}</h3>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-[#6b7280]">{count}</span>
-                            <button className="text-[#9ca3af] hover:text-[#ededed]">⋯</button>
-                            <button className="text-[#9ca3af] hover:text-[#ededed]">+</button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Issues List */}
-                      <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto">
-                        {statusIssues.map((issue) => (
-                          <IssueCard key={issue.id} issue={issue} />
-                        ))}
-                        {statusIssues.length === 0 && (
-                          <div className="text-center py-8 text-[#6b7280] text-sm bg-[#151515] border border-[#1f1f1f] rounded-lg">
-                            No issues
-                          </div>
-                        )}
-                      </div>
+          <div className="overflow-x-auto">
+            <div className="flex gap-4 min-w-max">
+              {statuses.map((status) => {
+                const statusIssues = getIssuesByStatus(status)
+                const count = getStatusCount(status)
+                return (
+                  <div
+                    key={status}
+                    className="flex-shrink-0"
+                    style={{ minWidth: '280px', width: '280px' }}
+                  >
+                    {/* Column Header */}
+                    <div className="flex items-center gap-2 justify-center mb-4 pb-2 border-b border-[#2a2a2a]">
+                      {getStatusIcon(status)}
+                      <span className="text-[13px] font-medium text-[#8a8a8a]">{status}</span>
+                      <span className="text-[11px] text-[#5c5c5c]">({count})</span>
                     </div>
-                  )
-                })}
-              </div>
+
+                    {/* Issues List */}
+                    <div className="space-y-1.5">
+                      {statusIssues.map((issue) => (
+                        <IssueCard key={issue.id} issue={issue} />
+                      ))}
+                      {statusIssues.length === 0 && (
+                        <div className="text-center py-8 text-[#5c5c5c] text-[13px]">
+                          —
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}

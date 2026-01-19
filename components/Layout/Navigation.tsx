@@ -13,11 +13,11 @@ export default function Navigation() {
   const pathname = usePathname()
 
   return (
-    <nav className="w-64 bg-[#151515] border-r border-[#1f1f1f] flex flex-col h-screen fixed left-0 top-0 z-50">
+    <nav className="w-64 bg-[#0d0d0d] border-r border-[#2a2a2a] flex flex-col h-screen fixed left-0 top-0 z-50" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif' }}>
       {/* Logo/Header */}
-      <div className="p-4 border-b border-[#1f1f1f]">
-        <h1 className="text-base font-semibold text-[#ededed]">Linear Portal</h1>
-        <p className="text-xs text-[#6b7280] mt-0.5">Public Workspace</p>
+      <div className="p-4 border-b border-[#2a2a2a]">
+        <h1 className="text-[14px] font-medium text-[#ebebeb]">Linear Portal</h1>
+        <p className="text-[12px] text-[#5c5c5c] mt-0.5">Public Workspace</p>
       </div>
       
       {/* Navigation Items */}
@@ -30,12 +30,12 @@ export default function Navigation() {
                 key={item.name}
                 href={item.href}
                 className={`
-                  flex items-center gap-2.5 px-3 py-2 rounded text-sm font-medium
+                  flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-normal
                   transition-colors duration-150
                   ${
                     isActive
-                      ? 'bg-[#5e6ad2] text-white'
-                      : 'text-[#9ca3af] hover:bg-[#1f1f1f] hover:text-[#ededed]'
+                      ? 'bg-[#262626] text-[#ebebeb]'
+                      : 'text-[#8a8a8a] hover:bg-[#262626] hover:text-[#ebebeb]'
                   }
                 `}
               >
@@ -48,15 +48,15 @@ export default function Navigation() {
       </div>
 
       {/* Footer - Admin Link */}
-      <div className="p-3 border-t border-[#1f1f1f]">
+      <div className="p-3 border-t border-[#2a2a2a]">
         <Link
           href="/admin"
           className={`
-            flex items-center gap-2.5 px-3 py-2 rounded text-sm transition-colors
+            flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-normal transition-colors duration-150
             ${
               pathname === '/admin' || pathname?.startsWith('/admin')
-                ? 'bg-[#5e6ad2] text-white'
-                : 'text-[#9ca3af] hover:bg-[#1f1f1f] hover:text-[#ededed]'
+                ? 'bg-[#262626] text-[#ebebeb]'
+                : 'text-[#8a8a8a] hover:bg-[#262626] hover:text-[#ebebeb]'
             }
           `}
         >

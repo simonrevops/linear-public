@@ -77,14 +77,18 @@ export default function IssueCard({ issue, onClick }: IssueCardProps) {
   return (
     <div
       className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-md p-3 hover:border-[#3a3a3a] transition-colors duration-150 cursor-pointer mb-1.5"
-      style={{ marginLeft: '4px', marginRight: '4px' }}
+      style={{ 
+        marginLeft: '4px', 
+        marginRight: '4px',
+        width: 'calc(100% - 8px)'
+      }}
       onClick={handleClick}
     >
       {/* Header row: Issue ID (left) + Assignee avatar (right) */}
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-[12px] text-[#5c5c5c] font-normal font-mono">{issue.identifier}</span>
         {assigneeInitials && (
-          <div className="w-6 h-6 rounded-full bg-[#9466ff] flex items-center justify-center text-white text-[10px] font-medium">
+          <div className="w-6 h-6 rounded-full bg-[#9466ff] flex items-center justify-center text-white text-[10px] font-medium flex-shrink-0">
             {assigneeInitials}
           </div>
         )}
@@ -94,9 +98,8 @@ export default function IssueCard({ issue, onClick }: IssueCardProps) {
       <h3 className="text-[13px] text-[#ebebeb] font-normal line-clamp-2 mb-2 leading-snug">{issue.title}</h3>
 
       {/* Metadata row */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {/* Milestone label */}
-        {milestoneLabel && (
+      {milestoneLabel && (
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-1 px-2 py-0.5 bg-[#262626] rounded-full">
             <div className="w-3 h-3 flex items-center justify-center text-[#9466ff]">
               <svg width="12" height="12" viewBox="0 0 14 14" fill="currentColor">
@@ -105,8 +108,8 @@ export default function IssueCard({ issue, onClick }: IssueCardProps) {
             </div>
             <span className="text-[11px] text-[#8a8a8a]">{milestoneLabel}</span>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

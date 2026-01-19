@@ -55,7 +55,7 @@ export default function CreateIssuePage() {
   }
 
   return (
-    <div className="h-screen bg-[#0d0d0d] flex flex-col">
+    <div className="h-screen bg-[#0d0d0d] flex flex-col" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif' }}>
       {!user ? (
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="max-w-md w-full">
@@ -65,8 +65,8 @@ export default function CreateIssuePage() {
       ) : loading || !sessionId ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#5e6ad2]"></div>
-            <p className="mt-4 text-[#9ca3af]">Initializing chat...</p>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#9466ff]"></div>
+            <p className="mt-4 text-[#8a8a8a]">Initializing chat...</p>
           </div>
         </div>
       ) : (
