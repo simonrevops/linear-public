@@ -36,21 +36,34 @@ vercel
 
 ## Step 3: Configure Environment Variables
 
-In Vercel dashboard, go to your project > Settings > Environment Variables and add:
+### Supabase Variables (Auto-synced via Integration)
+
+If you've installed the Vercel integration in your Supabase project, the following variables are automatically synced:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+You can verify these in Vercel dashboard > Settings > Environment Variables.
+
+### Third-Party API Keys (Add Manually in Vercel)
+
+Go to your Vercel project > Settings > Environment Variables and add these manually:
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 LINEAR_API_KEY=your_linear_api_key
 HUBSPOT_API_KEY=your_hubspot_api_key
 ANTHROPIC_API_KEY=your_anthropic_api_key
 ```
 
+**Where to get these keys:**
+- **LINEAR_API_KEY**: Linear → Settings → API → Create Personal API Key
+- **HUBSPOT_API_KEY**: HubSpot → Settings → Integrations → Private Apps → Create a private app
+- **ANTHROPIC_API_KEY**: Anthropic Console → API Keys → Create Key
+
 **Important**: 
 - `NEXT_PUBLIC_*` variables are exposed to the browser
 - Never commit API keys to your repository
 - Use Vercel's environment variable encryption
+- Set the appropriate environment scope (Production, Preview, Development) for each variable
 
 ## Step 4: Deploy
 

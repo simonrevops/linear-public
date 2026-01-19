@@ -32,7 +32,6 @@ export default function ChatInterface({ sessionId, userEmail, initialMessages = 
     setInput('')
     setLoading(true)
 
-    // Add user message to UI
     const newUserMessage = { role: 'user' as const, content: userMessage }
     setMessages(prev => [...prev, newUserMessage])
 
@@ -55,11 +54,9 @@ export default function ChatInterface({ sessionId, userEmail, initialMessages = 
 
       const data = await response.json()
 
-      // Add assistant response to UI
       setMessages(prev => [...prev, { role: 'assistant', content: data.message }])
       setStatus(data.status === 'ready' ? 'AWAIT_CONFIRMATION' : data.status === 'create' ? 'CREATE' : 'CONVERSING')
 
-      // If issue was created, reset after a moment
       if (data.status === 'create') {
         setTimeout(() => {
           setStatus('CONVERSING')
@@ -81,10 +78,10 @@ export default function ChatInterface({ sessionId, userEmail, initialMessages = 
 
   return (
     <div className="flex flex-col h-full max-h-[600px]">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white rounded-t-lg">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#0d0d0d] rounded-t-lg">
         {messages.length === 0 && (
-          <div className="text-center text-gray-500 py-8">
-            <p className="text-lg font-medium mb-2">How can I help you today?</p>
+          <div className="text-center text-[#9ca3af] py-8">
+            <p className="text-lg font-medium mb-2 text-[#ededed]">How can I help you today?</p>
             <p className="text-sm">Describe the issue or request you'd like to report.</p>
           </div>
         )}
@@ -93,31 +90,31 @@ export default function ChatInterface({ sessionId, userEmail, initialMessages = 
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-lg px-4 py-2">
+            <div className="bg-[#151515] rounded-lg px-4 py-2">
               <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                <div className="w-2 h-2 bg-[#5e6ad2] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-[#5e6ad2] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-[#5e6ad2] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
               </div>
             </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={handleSend} className="border-t border-gray-200 p-4 bg-white rounded-b-lg">
+      <form onSubmit={handleSend} className="border-t border-[#1f1f1f] p-4 bg-[#151515] rounded-b-lg">
         <div className="flex space-x-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={status === 'AWAIT_CONFIRMATION' ? 'Type "yes" to create or "cancel" to discard...' : 'Type your message...'}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="flex-1 px-4 py-2 bg-[#0d0d0d] border border-[#1f1f1f] rounded-md text-[#ededed] focus:outline-none focus:ring-2 focus:ring-[#5e6ad2] focus:border-[#5e6ad2]"
             disabled={loading}
           />
           <button
             type="submit"
             disabled={loading || !input.trim()}
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-[#5e6ad2] text-white rounded-md hover:bg-[#4c56c4] focus:outline-none focus:ring-2 focus:ring-[#5e6ad2] focus:ring-offset-2 focus:ring-offset-[#151515] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Send
           </button>
@@ -126,4 +123,3 @@ export default function ChatInterface({ sessionId, userEmail, initialMessages = 
     </div>
   )
 }
-

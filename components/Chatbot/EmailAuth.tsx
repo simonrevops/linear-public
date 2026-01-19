@@ -47,15 +47,15 @@ export default function EmailAuth({ onAuthenticated }: EmailAuthProps) {
   }
 
   return (
-    <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4">Identify Yourself</h2>
-      <p className="text-gray-600 mb-6">
+    <div>
+      <h2 className="text-xl font-semibold text-[#ededed] mb-2">Identify Yourself</h2>
+      <p className="text-[#9ca3af] mb-6 text-sm">
         Please enter your email to report an issue. We'll use this to understand the scope and impact.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="email" className="block text-sm font-medium text-[#9ca3af] mb-1">
             Email *
           </label>
           <input
@@ -64,13 +64,13 @@ export default function EmailAuth({ onAuthenticated }: EmailAuthProps) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 bg-[#0d0d0d] border border-[#1f1f1f] rounded-md text-[#ededed] focus:outline-none focus:ring-2 focus:ring-[#5e6ad2] focus:border-[#5e6ad2]"
             placeholder="your.email@company.com"
           />
         </div>
 
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="name" className="block text-sm font-medium text-[#9ca3af] mb-1">
             Name (optional)
           </label>
           <input
@@ -78,13 +78,13 @@ export default function EmailAuth({ onAuthenticated }: EmailAuthProps) {
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 bg-[#0d0d0d] border border-[#1f1f1f] rounded-md text-[#ededed] focus:outline-none focus:ring-2 focus:ring-[#5e6ad2] focus:border-[#5e6ad2]"
             placeholder="Your name"
           />
         </div>
 
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+          <div className="p-3 bg-[#dc2626]/20 border border-[#dc2626]/50 rounded-md text-[#dc2626] text-sm">
             {error}
           </div>
         )}
@@ -92,7 +92,7 @@ export default function EmailAuth({ onAuthenticated }: EmailAuthProps) {
         <button
           type="submit"
           disabled={loading || !email}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-[#5e6ad2] text-white py-2 px-4 rounded-md hover:bg-[#4c56c4] focus:outline-none focus:ring-2 focus:ring-[#5e6ad2] focus:ring-offset-2 focus:ring-offset-[#0d0d0d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? 'Identifying...' : 'Continue'}
         </button>
@@ -100,4 +100,3 @@ export default function EmailAuth({ onAuthenticated }: EmailAuthProps) {
     </div>
   )
 }
-

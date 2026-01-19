@@ -1,0 +1,60 @@
+'use client'
+
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+
+const navigation = [
+  { name: 'Create Issue', href: '/create', icon: '➕' },
+  { name: 'Projects', href: '/projects', icon: '📁' },
+  { name: 'All Issues', href: '/issues', icon: '📋' },
+]
+
+export default function Navigation() {
+  const pathname = usePathname()
+
+  return (
+    <nav className="w-64 bg-[#151515] border-r border-[#1f1f1f] flex flex-col h-screen fixed left-0 top-0">
+      <div className="p-6 border-b border-[#1f1f1f]">
+        <h1 className="text-xl font-semibold text-[#ededed]">Linear Portal</h1>
+        <p className="text-sm text-[#9ca3af] mt-1">Public Workspace</p>
+      </div>
+      
+      <div className="flex-1 overflow-y-auto py-4">
+        <div className="px-3 space-y-1">
+          {navigation.map((item) => {
+            const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`
+                  flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
+                  transition-colors duration-150
+                  ${
+                    isActive
+                      ? 'bg-[#5e6ad2] text-white'
+                      : 'text-[#9ca3af] hover:bg-[#1f1f1f] hover:text-[#ededed]'
+                  }
+                `}
+              >
+                <span className="text-base">{item.icon}</span>
+                <span>{item.name}</span>
+              </Link>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="p-4 border-t border-[#1f1f1f]">
+        <Link
+          href="/admin"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[#9ca3af] hover:bg-[#1f1f1f] hover:text-[#ededed] transition-colors"
+        >
+          <span>⚙️</span>
+          <span>Admin</span>
+        </Link>
+      </div>
+    </nav>
+  )
+}
+

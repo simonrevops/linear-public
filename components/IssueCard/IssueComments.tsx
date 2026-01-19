@@ -78,16 +78,16 @@ export default function IssueComments({ issueId, onCommentAdded }: IssueComments
   }
 
   if (loading) {
-    return <div className="text-sm text-gray-500">Loading comments...</div>
+    return <div className="text-sm text-[#9ca3af]">Loading comments...</div>
   }
 
   return (
     <div className="mt-4">
       <div className="flex items-center justify-between mb-3">
-        <h4 className="text-sm font-medium text-gray-700">Comments ({comments.length})</h4>
+        <h4 className="text-sm font-medium text-[#ededed]">Comments ({comments.length})</h4>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="text-sm text-blue-600 hover:text-blue-700"
+          className="text-sm text-[#5e6ad2] hover:text-[#4c56c4] transition-colors"
         >
           {showForm ? 'Cancel' : 'Add Comment'}
         </button>
@@ -99,7 +99,7 @@ export default function IssueComments({ issueId, onCommentAdded }: IssueComments
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
             placeholder="Add a comment..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 bg-[#0d0d0d] border border-[#1f1f1f] rounded-md text-[#ededed] focus:outline-none focus:ring-2 focus:ring-[#5e6ad2] focus:border-[#5e6ad2]"
             rows={3}
           />
           <div className="mt-2 flex justify-end space-x-2">
@@ -109,14 +109,14 @@ export default function IssueComments({ issueId, onCommentAdded }: IssueComments
                 setShowForm(false)
                 setCommentText('')
               }}
-              className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
+              className="px-4 py-2 text-sm text-[#9ca3af] hover:text-[#ededed] transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting || !commentText.trim()}
-              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="px-4 py-2 text-sm bg-[#5e6ad2] text-white rounded-md hover:bg-[#4c56c4] disabled:opacity-50 transition-colors"
             >
               {submitting ? 'Posting...' : 'Post Comment'}
             </button>
@@ -131,19 +131,19 @@ export default function IssueComments({ issueId, onCommentAdded }: IssueComments
           const date = comment.createdAt || comment.created_at
 
           return (
-            <div key={comment.id} className="bg-gray-50 rounded-md p-3">
+            <div key={comment.id} className="bg-[#0d0d0d] border border-[#1f1f1f] rounded-md p-3">
               <div className="flex items-center space-x-2 mb-1">
-                <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs">
+                <div className="w-6 h-6 rounded-full bg-[#5e6ad2] flex items-center justify-center text-white text-xs">
                   {authorName.charAt(0).toUpperCase()}
                 </div>
-                <span className="text-sm font-medium text-gray-900">{authorName}</span>
+                <span className="text-sm font-medium text-[#ededed]">{authorName}</span>
                 {date && (
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-[#6b7280]">
                     {new Date(date).toLocaleDateString()}
                   </span>
                 )}
               </div>
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{content}</p>
+              <p className="text-sm text-[#ededed] whitespace-pre-wrap">{content}</p>
             </div>
           )
         })}
@@ -151,4 +151,3 @@ export default function IssueComments({ issueId, onCommentAdded }: IssueComments
     </div>
   )
 }
-
