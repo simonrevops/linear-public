@@ -65,6 +65,72 @@ export interface LinearComment {
   createdAt: string
 }
 
+export interface LinearWorkflowState {
+  id: string
+  name: string
+  type: string
+  position: number
+}
+
+/**
+ * Fetch workflow states for a team
+ */
+export async function fetchWorkflowStates(teamId: string): Promise<LinearWorkflowState[]> {
+  try {
+    const team = await linearClient.team(teamId)
+    
+    // Handle states - may be a function that returns a promise
+    const workflowStatesData = typeof team.states === 'function'
+      ? await (team.states as any)()
+      : await (team.states as any)
+    
+    const results: LinearWorkflowState[] = []
+    
+    if (workflowStatesData?.nodes) {
+      for (const state of workflowStatesData.nodes) {
+        results.push({
+          id: state.id,
+          name: state.name,
+          type: state.type,
+          position: state.position || 0
+        })
+      }
+    }
+    
+    // Sort by position (Linear's workflow order)
+    return results.sort((a, b) => a.position - b.position)
+  } catch (error) {
+    console.error('Error fetching workflow states:', error)
+    return []
+  }
+}
+
+/**
+ * Fetch workflow states for multiple teams and merge them
+ * Returns unique states ordered by their position in workflows
+ */
+export async function fetchWorkflowStatesForTeams(teamIds: string[]): Promise<LinearWorkflowState[]> {
+  if (teamIds.length === 0) {
+    return []
+  }
+
+  const allStates = new Map<string, LinearWorkflowState>()
+  
+  for (const teamId of teamIds) {
+    const states = await fetchWorkflowStates(teamId)
+    for (const state of states) {
+      // Use name as key to avoid duplicates, keep the one with lower position
+      const existing = allStates.get(state.name)
+      if (!existing || existing.position > state.position) {
+        allStates.set(state.name, state)
+      }
+    }
+  }
+  
+  // Return sorted by position
+  return Array.from(allStates.values()).sort((a, b) => a.position - b.position)
+}
+
 /**
  * Fetch projects with a specific label
  */
@@ -305,7 +371,6 @@ export async function createIssueComment(issueId: string, body: string, userId?:
   // Fetch the created comment to get full data
   const issue = await linearClient.issue(issueId)
   const comments = await issue.comments()
-  // CommentPayload may have id property, but we need to find it in the comments
   const createdComment = comments.nodes[comments.nodes.length - 1] // Get the most recent comment
   
   if (!createdComment) {

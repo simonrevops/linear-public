@@ -34,15 +34,42 @@ export default function AllIssuesPage() {
 
       setIssues(loadedIssues)
 
-      // Extract unique statuses - order them like Linear
+      // Get workflow states from Linear
+      let workflowStates: Array<{ name: string; position: number }> = []
+      
+      if (issuesData.workflowStates) {
+        workflowStates = issuesData.workflowStates
+      } else {
+        // Fallback: fetch states separately if not included in response
+        try {
+          const teamIds = Array.from(new Set(loadedIssues.map((issue: LinearIssue) => issue.team.id)))
+          if (teamIds.length > 0) {
+            const statesResponse = await fetch(`/api/linear/states?teamIds=${teamIds.join(',')}&cache=false`)
+            const statesData = await statesResponse.json()
+            workflowStates = statesData.states || []
+          }
+        } catch (err) {
+          console.error('Error fetching workflow states:', err)
+        }
+      }
+
+      // Extract unique statuses from issues
       const uniqueStatuses = Array.from(
         new Set(loadedIssues.map((issue: LinearIssue) => issue.state.name))
       )
-      
-      const statusOrder = ['Backlog', 'Todo', 'In Progress', 'Done', 'Canceled']
-      const orderedStatuses = statusOrder.filter(s => uniqueStatuses.includes(s))
-      const remainingStatuses = uniqueStatuses.filter(s => !statusOrder.includes(s)).sort()
-      setStatuses([...orderedStatuses, ...remainingStatuses])
+
+      // Order statuses by their position in Linear's workflow
+      if (workflowStates.length > 0) {
+        const statusMap = new Map(workflowStates.map(s => [s.name, s.position]))
+        const orderedStatuses = workflowStates
+          .filter(state => uniqueStatuses.includes(state.name))
+          .map(state => state.name)
+        const unorderedStatuses = uniqueStatuses.filter(s => !statusMap.has(s)).sort()
+        setStatuses([...orderedStatuses, ...unorderedStatuses])
+      } else {
+        // Fallback: use statuses from issues in the order they appear
+        setStatuses(uniqueStatuses)
+      }
     } catch (error) {
       console.error('Error loading issues:', error)
     } finally {
