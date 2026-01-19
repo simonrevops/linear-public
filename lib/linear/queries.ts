@@ -77,25 +77,46 @@ export async function fetchProjectsWithLabel(labelName: string = 'public'): Prom
     }
   })
 
-  return projects.nodes.map(project => ({
-    id: project.id,
-    name: project.name,
-    description: project.description || undefined,
-    state: project.state,
-    progress: project.progress,
-    teams: {
-      nodes: project.teams.nodes.map(team => ({
-        id: team.id,
-        name: team.name
-      }))
-    },
-    labels: project.labels ? {
-      nodes: project.labels.nodes.map(label => ({
-        id: label.id,
-        name: label.name
-      }))
-    } : undefined
-  }))
+  const results: LinearProject[] = []
+  
+  for (const project of projects.nodes) {
+    // Handle teams - may be a function that returns a promise
+    const teamsData = typeof project.teams === 'function' 
+      ? await (project.teams as any)() 
+      : await (project.teams as any)
+    const teamsNodes = teamsData?.nodes || []
+
+    // Handle labels - may be a function that returns a promise
+    let labelsNodes: any[] = []
+    if (project.labels) {
+      const labelsData = typeof project.labels === 'function'
+        ? await (project.labels as any)()
+        : await (project.labels as any)
+      labelsNodes = labelsData?.nodes || []
+    }
+
+    results.push({
+      id: project.id,
+      name: project.name,
+      description: project.description || undefined,
+      state: project.state,
+      progress: project.progress,
+      teams: {
+        nodes: teamsNodes.map((team: any) => ({
+          id: team.id,
+          name: team.name
+        }))
+      },
+      labels: labelsNodes.length > 0 ? {
+        nodes: labelsNodes.map((label: any) => ({
+          id: label.id,
+          name: label.name
+        }))
+      } : undefined
+    })
+  }
+
+  return results
 }
 
 /**
@@ -114,39 +135,62 @@ export async function fetchIssuesFromProjects(projectIds: string[]): Promise<Lin
     }
   })
 
-  return issues.nodes.map(issue => ({
-    id: issue.id,
-    identifier: issue.identifier,
-    title: issue.title,
-    description: issue.description || undefined,
-    state: {
-      id: issue.state.id,
-      name: issue.state.name,
-      type: issue.state.type
-    },
-    priority: issue.priority,
-    assignee: issue.assignee ? {
-      id: issue.assignee.id,
-      name: issue.assignee.name,
-      email: issue.assignee.email || undefined
-    } : undefined,
-    project: issue.project ? {
-      id: issue.project.id,
-      name: issue.project.name
-    } : undefined,
-    team: {
-      id: issue.team.id,
-      name: issue.team.name
-    },
-    labels: issue.labels ? {
-      nodes: issue.labels.nodes.map(label => ({
-        id: label.id,
-        name: label.name
-      }))
-    } : undefined,
-    createdAt: issue.createdAt,
-    updatedAt: issue.updatedAt
-  }))
+  const results: LinearIssue[] = []
+
+  for (const issue of issues.nodes) {
+    // Await LinearFetch objects - handle both function and direct access
+    const state = issue.state ? (typeof issue.state === 'function' ? await (issue.state as any)() : await (issue.state as any)) : null
+    const team = issue.team ? (typeof issue.team === 'function' ? await (issue.team as any)() : await (issue.team as any)) : null
+    const assignee = issue.assignee ? (typeof issue.assignee === 'function' ? await (issue.assignee as any)() : await (issue.assignee as any)) : null
+    const project = issue.project ? (typeof issue.project === 'function' ? await (issue.project as any)() : await (issue.project as any)) : null
+    let labelsNodes: any[] = []
+    if (issue.labels) {
+      const labelsData = typeof issue.labels === 'function'
+        ? await (issue.labels as any)()
+        : await (issue.labels as any)
+      labelsNodes = labelsData?.nodes || []
+    }
+
+    if (!state || !team) {
+      continue // Skip if required fields are missing
+    }
+
+    results.push({
+      id: issue.id,
+      identifier: issue.identifier,
+      title: issue.title,
+      description: issue.description || undefined,
+      state: {
+        id: state.id,
+        name: state.name,
+        type: state.type
+      },
+      priority: issue.priority,
+      assignee: assignee && assignee.email ? {
+        id: assignee.id,
+        name: assignee.name,
+        email: assignee.email
+      } : undefined,
+      project: project ? {
+        id: project.id,
+        name: project.name
+      } : undefined,
+      team: {
+        id: team.id,
+        name: team.name
+      },
+      labels: labelsNodes.length > 0 ? {
+        nodes: labelsNodes.map((label: any) => ({
+          id: label.id,
+          name: label.name
+        }))
+      } : undefined,
+      createdAt: issue.createdAt.toISOString(),
+      updatedAt: issue.updatedAt.toISOString()
+    })
+  }
+
+  return results
 }
 
 /**
@@ -161,39 +205,62 @@ export async function fetchIssuesByTeam(teamId: string): Promise<LinearIssue[]> 
     }
   })
 
-  return issues.nodes.map(issue => ({
-    id: issue.id,
-    identifier: issue.identifier,
-    title: issue.title,
-    description: issue.description || undefined,
-    state: {
-      id: issue.state.id,
-      name: issue.state.name,
-      type: issue.state.type
-    },
-    priority: issue.priority,
-    assignee: issue.assignee ? {
-      id: issue.assignee.id,
-      name: issue.assignee.name,
-      email: issue.assignee.email || undefined
-    } : undefined,
-    project: issue.project ? {
-      id: issue.project.id,
-      name: issue.project.name
-    } : undefined,
-    team: {
-      id: issue.team.id,
-      name: issue.team.name
-    },
-    labels: issue.labels ? {
-      nodes: issue.labels.nodes.map(label => ({
-        id: label.id,
-        name: label.name
-      }))
-    } : undefined,
-    createdAt: issue.createdAt,
-    updatedAt: issue.updatedAt
-  }))
+  const results: LinearIssue[] = []
+
+  for (const issue of issues.nodes) {
+    // Await LinearFetch objects - handle both function and direct access
+    const state = issue.state ? (typeof issue.state === 'function' ? await (issue.state as any)() : await (issue.state as any)) : null
+    const team = issue.team ? (typeof issue.team === 'function' ? await (issue.team as any)() : await (issue.team as any)) : null
+    const assignee = issue.assignee ? (typeof issue.assignee === 'function' ? await (issue.assignee as any)() : await (issue.assignee as any)) : null
+    const project = issue.project ? (typeof issue.project === 'function' ? await (issue.project as any)() : await (issue.project as any)) : null
+    let labelsNodes: any[] = []
+    if (issue.labels) {
+      const labelsData = typeof issue.labels === 'function'
+        ? await (issue.labels as any)()
+        : await (issue.labels as any)
+      labelsNodes = labelsData?.nodes || []
+    }
+
+    if (!state || !team) {
+      continue // Skip if required fields are missing
+    }
+
+    results.push({
+      id: issue.id,
+      identifier: issue.identifier,
+      title: issue.title,
+      description: issue.description || undefined,
+      state: {
+        id: state.id,
+        name: state.name,
+        type: state.type
+      },
+      priority: issue.priority,
+      assignee: assignee && assignee.email ? {
+        id: assignee.id,
+        name: assignee.name,
+        email: assignee.email
+      } : undefined,
+      project: project ? {
+        id: project.id,
+        name: project.name
+      } : undefined,
+      team: {
+        id: team.id,
+        name: team.name
+      },
+      labels: labelsNodes.length > 0 ? {
+        nodes: labelsNodes.map((label: any) => ({
+          id: label.id,
+          name: label.name
+        }))
+      } : undefined,
+      createdAt: issue.createdAt.toISOString(),
+      updatedAt: issue.updatedAt.toISOString()
+    })
+  }
+
+  return results
 }
 
 /**
@@ -203,37 +270,62 @@ export async function fetchIssueComments(issueId: string): Promise<LinearComment
   const issue = await linearClient.issue(issueId)
   const comments = await issue.comments()
 
-  return comments.nodes.map(comment => ({
-    id: comment.id,
-    body: comment.body,
-    user: {
-      id: comment.user.id,
-      name: comment.user.name,
-      email: comment.user.email || undefined
-    },
-    createdAt: comment.createdAt
-  }))
+  const results: LinearComment[] = []
+
+  for (const comment of comments.nodes) {
+    const user = comment.user ? (typeof comment.user === 'function' ? await (comment.user as any)() : await (comment.user as any)) : null
+    if (!user) {
+      continue
+    }
+    results.push({
+      id: comment.id,
+      body: comment.body,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email || undefined
+      },
+      createdAt: comment.createdAt.toISOString()
+    })
+  }
+
+  return results
 }
 
 /**
  * Create a comment on an issue
  */
 export async function createIssueComment(issueId: string, body: string, userId?: string): Promise<LinearComment> {
-  const comment = await linearClient.createComment({
+  const commentPayload = await linearClient.createComment({
     issueId,
     body,
     ...(userId && { userId })
   })
 
+  // Fetch the created comment to get full data
+  const issue = await linearClient.issue(issueId)
+  const comments = await issue.comments()
+  // CommentPayload may have id property, but we need to find it in the comments
+  const createdComment = comments.nodes[comments.nodes.length - 1] // Get the most recent comment
+  
+  if (!createdComment) {
+    throw new Error('Failed to fetch created comment')
+  }
+
+  const user = createdComment.user ? (typeof createdComment.user === 'function' ? await (createdComment.user as any)() : await (createdComment.user as any)) : null
+  if (!user) {
+    throw new Error('Failed to fetch comment user')
+  }
+
   return {
-    id: comment.id,
-    body: comment.body,
+    id: createdComment.id,
+    body: createdComment.body,
     user: {
-      id: comment.user.id,
-      name: comment.user.name,
-      email: comment.user.email || undefined
+      id: user.id,
+      name: user.name,
+      email: user.email || undefined
     },
-    createdAt: comment.createdAt
+    createdAt: createdComment.createdAt.toISOString()
   }
 }
 
@@ -249,7 +341,7 @@ export async function createIssue(data: {
   projectId?: string
   labelIds?: string[]
 }): Promise<LinearIssue> {
-  const issue = await linearClient.createIssue({
+  const issuePayload = await linearClient.createIssue({
     teamId: data.teamId,
     title: data.title,
     description: data.description,
@@ -259,8 +351,31 @@ export async function createIssue(data: {
     labelIds: data.labelIds
   })
 
+  // IssuePayload may have different structure, try to get ID
+  const issueId = (issuePayload as any).id || (issuePayload as any).issue?.id
+  if (!issueId) {
+    throw new Error('Failed to get issue ID from creation response')
+  }
+
   // Fetch the full issue to return complete data
-  const fullIssue = await linearClient.issue(issue.id)
+  const fullIssue = await linearClient.issue(issueId)
+
+  // Await all LinearFetch objects - handle both function and direct access
+  const state = fullIssue.state ? (typeof fullIssue.state === 'function' ? await (fullIssue.state as any)() : await (fullIssue.state as any)) : null
+  const team = fullIssue.team ? (typeof fullIssue.team === 'function' ? await (fullIssue.team as any)() : await (fullIssue.team as any)) : null
+  const assignee = fullIssue.assignee ? (typeof fullIssue.assignee === 'function' ? await (fullIssue.assignee as any)() : await (fullIssue.assignee as any)) : null
+  const project = fullIssue.project ? (typeof fullIssue.project === 'function' ? await (fullIssue.project as any)() : await (fullIssue.project as any)) : null
+  let labelsNodes: any[] = []
+  if (fullIssue.labels) {
+    const labelsData = typeof fullIssue.labels === 'function'
+      ? await (fullIssue.labels as any)()
+      : await (fullIssue.labels as any)
+    labelsNodes = labelsData?.nodes || []
+  }
+
+  if (!state || !team) {
+    throw new Error('Failed to fetch required issue data')
+  }
 
   return {
     id: fullIssue.id,
@@ -268,32 +383,31 @@ export async function createIssue(data: {
     title: fullIssue.title,
     description: fullIssue.description || undefined,
     state: {
-      id: fullIssue.state.id,
-      name: fullIssue.state.name,
-      type: fullIssue.state.type
+      id: state.id,
+      name: state.name,
+      type: state.type
     },
     priority: fullIssue.priority,
-    assignee: fullIssue.assignee ? {
-      id: fullIssue.assignee.id,
-      name: fullIssue.assignee.name,
-      email: fullIssue.assignee.email || undefined
+    assignee: assignee && assignee.email ? {
+      id: assignee.id,
+      name: assignee.name,
+      email: assignee.email
     } : undefined,
-    project: fullIssue.project ? {
-      id: fullIssue.project.id,
-      name: fullIssue.project.name
+    project: project ? {
+      id: project.id,
+      name: project.name
     } : undefined,
     team: {
-      id: fullIssue.team.id,
-      name: fullIssue.team.name
+      id: team.id,
+      name: team.name
     },
-    labels: fullIssue.labels ? {
-      nodes: fullIssue.labels.nodes.map(label => ({
+    labels: labelsNodes.length > 0 ? {
+      nodes: labelsNodes.map((label: any) => ({
         id: label.id,
         name: label.name
       }))
     } : undefined,
-    createdAt: fullIssue.createdAt,
-    updatedAt: fullIssue.updatedAt
+    createdAt: fullIssue.createdAt.toISOString(),
+    updatedAt: fullIssue.updatedAt.toISOString()
   }
 }
-
